@@ -1,5 +1,6 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const router = express.Router();
 const Comment = require('../models/Comment');
 const User = require('../models/User');
@@ -38,7 +39,6 @@ function verifyToken(req, res, next) {
 router.get('/recipe/:recipeId', async (req, res) => {
   try {
     const { recipeId } = req.params;
-    const mongoose = require('mongoose');
 
     // Validate recipeId is a valid MongoDB ObjectId
     if (!mongoose.Types.ObjectId.isValid(recipeId)) {
@@ -90,7 +90,6 @@ router.post('/', verifyToken, async (req, res) => {
     }
 
     // Validate recipeId is a valid MongoDB ObjectId
-    const mongoose = require('mongoose');
     if (!mongoose.Types.ObjectId.isValid(recipeId)) {
       console.log('[COMMENTS] Invalid recipeId format:', recipeId);
       return res.status(400).json({ error: 'Invalid recipe ID' });
@@ -125,7 +124,6 @@ router.post('/', verifyToken, async (req, res) => {
 router.delete('/:commentId', verifyToken, async (req, res) => {
   try {
     const { commentId } = req.params;
-    const mongoose = require('mongoose');
 
     // Validate commentId
     if (!mongoose.Types.ObjectId.isValid(commentId)) {
