@@ -38,8 +38,15 @@ function verifyToken(req, res, next) {
 router.get('/recipe/:recipeId', async (req, res) => {
   try {
     const { recipeId } = req.params;
+    const mongoose = require('mongoose');
 
-    const comments = await Comment.find({ recipeId })
+    // Validate recipeId is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(recipeId)) {
+      console.log('[COMMENTS] Invalid recipeId in GET:', recipeId);
+      return res.status(400).json({ error: 'Invalid recipe ID' });
+    }
+
+    const comments = await Comment.find({ recipeId: mongoose.Types.ObjectId(recipeId) })
       .sort({ createdAt: -1 })
       .lean();
 
@@ -51,9 +58,10 @@ router.get('/recipe/:recipeId', async (req, res) => {
       createdAt: c.createdAt
     }));
 
+    console.log('[COMMENTS] GET /recipe/:recipeId returned', formatted.length, 'comments');
     res.json(formatted);
   } catch (error) {
-    console.error('Error:', error);
+    console.error('[COMMENTS] Error fetching comments:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -117,9 +125,16 @@ router.post('/', verifyToken, async (req, res) => {
 router.delete('/:commentId', verifyToken, async (req, res) => {
   try {
     const { commentId } = req.params;
+    const mongoose = require('mongoose');
+
+    // Validate commentId
+    if (!mongoose.Types.ObjectId.isValid(commentId)) {
+      return res.status(400).json({ error: 'Invalid comment ID' });
+    }
 
     const comment = await Comment.findById(commentId);
     if (!comment) {
+      console.log('[COMMENTS] Comment not found:', commentId);
       return res.status(404).json({ error: 'Comment not found' });
     }
 
@@ -127,14 +142,16 @@ router.delete('/:commentId', verifyToken, async (req, res) => {
     const user = await User.findById(req.user.userId).select('role');
 
     if (comment.userId !== req.user.userId && user?.role !== 'admin') {
+      console.log('[COMMENTS] Unauthorized delete attempt:', { commentUser: comment.userId, requestUser: req.user.userId });
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
     await Comment.findByIdAndDelete(commentId);
+    console.log('[COMMENTS] Comment deleted successfully:', commentId);
 
     res.json({ message: 'Comment deleted successfully' });
   } catch (error) {
-    console.error('Error:', error);
+    console.error('[COMMENTS] Delete error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });
