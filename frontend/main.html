@@ -437,25 +437,43 @@
                 return;
             }
 
+            console.log('DEBUG submitComment:', {
+                recipeId: recipeId,
+                text: text,
+                token: localStorage.getItem('token')?.substring(0, 20) + '...',
+                loginStatus: isLoggedIn()
+            });
+
             try {
+                const body = JSON.stringify({
+                    recipeId: recipeId,
+                    text: text
+                });
+                console.log('DEBUG submitComment body:', body);
+
                 const response = await fetch(`${API_URL}/comments`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
-                    body: JSON.stringify({
-                        recipeId: recipeId,
-                        text: text
-                    })
+                    body: body
+                });
+
+                console.log('DEBUG submitComment response:', {
+                    status: response.status,
+                    ok: response.ok
                 });
 
                 if (!response.ok) {
                     const result = await response.json();
+                    console.log('DEBUG submitComment error:', result);
                     alert(result.error || 'Failed to post comment');
                     return;
                 }
 
+                const responseData = await response.json();
+                console.log('DEBUG submitComment success:', responseData);
                 commentInput.value = '';
                 await loadComments(recipeId);
             } catch (error) {
