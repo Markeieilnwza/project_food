@@ -65,16 +65,15 @@ router.post('/', verifyToken, async (req, res) => {
     const userId = req.user.userId;
     const username = req.user.username;
 
-    console.log('DEBUG Comment POST:', {
-      bodyData: req.body,
-      userFromJWT: { userId, username },
-      recipeId,
-      text,
-      allFieldsExist: { recipeId: !!recipeId, userId: !!userId, username: !!username, text: !!text }
-    });
+    console.log('[COMMENTS] POST request body:', { recipeId, text, userId, username });
 
     if (!recipeId || !userId || !username || !text) {
-      console.log('VALIDATION FAILED - Missing fields:', { recipeId: !!recipeId, userId: !!userId, username: !!username, text: !!text });
+      console.log('[COMMENTS] VALIDATION FAILED - Missing fields:', { 
+        recipeId: !!recipeId, 
+        userId: !!userId, 
+        username: !!username, 
+        text: !!text 
+      });
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -82,27 +81,34 @@ router.post('/', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'Comment must be 1-500 characters' });
     }
 
-    console.log('DEBUG: About to create comment with:', { recipeId, userId, username, text });
+    // Validate recipeId is a valid MongoDB ObjectId
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(recipeId)) {
+      console.log('[COMMENTS] Invalid recipeId format:', recipeId);
+      return res.status(400).json({ error: 'Invalid recipe ID' });
+    }
+
+    console.log('[COMMENTS] About to create comment with:', { recipeId, userId, username, text });
 
     const comment = await Comment.create({
-      recipeId,
+      recipeId: mongoose.Types.ObjectId(recipeId),
       userId,
       username,
       text
     });
 
-    console.log('DEBUG: Comment created successfully:', comment);
+    console.log('[COMMENTS] Comment created successfully:', comment);
 
     res.status(201).json({
       id: comment._id,
-      recipeId,
+      recipeId: comment.recipeId,
       username,
       text,
       createdAt: comment.createdAt
     });
   } catch (error) {
-    console.error('DEBUG: Error creating comment:', error.message);
-    console.error('DEBUG: Full error:', error);
+    console.error('[COMMENTS] Error creating comment:', error.message);
+    console.error('[COMMENTS] Full error:', error);
     res.status(500).json({ error: 'Server error: ' + error.message });
   }
 });
