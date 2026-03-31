@@ -16,9 +16,11 @@ function verifyToken(req, res, next) {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-here');
+    console.log('DEBUG JWT Decoded:', decoded);
     req.user = decoded;
     next();
   } catch (error) {
+    console.log('DEBUG JWT Error:', error.message);
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({ 
         error: 'Token expired',

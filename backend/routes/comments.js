@@ -50,7 +50,16 @@ router.post('/', verifyToken, async (req, res) => {
     const userId = req.user.userId;
     const username = req.user.username;
 
+    console.log('DEBUG Comment POST:', {
+      bodyData: req.body,
+      userFromJWT: { userId, username },
+      recipeId,
+      text,
+      allFieldsExist: { recipeId: !!recipeId, userId: !!userId, username: !!username, text: !!text }
+    });
+
     if (!recipeId || !userId || !username || !text) {
+      console.log('VALIDATION FAILED - Missing fields:', { recipeId: !!recipeId, userId: !!userId, username: !!username, text: !!text });
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
