@@ -129,14 +129,26 @@ async function seedDefaultTags() {
   logger.info('Default tags initialized');
 }
 
+async function hasSeeded(key) {
+  const meta = await mongoose.connection.db.collection('_metadata').findOne({ _id: key });
+  return !!meta;
+}
+
+async function markSeeded(key) {
+  await mongoose.connection.db.collection('_metadata').updateOne(
+    { _id: key },
+    { $set: { seededAt: new Date() } },
+    { upsert: true }
+  );
+}
+
 async function seedDemoUsersIfNeeded() {
-  const count = await User.countDocuments();
-  if (count > 0) {
-    logger.info('Users already exist, skipping demo user seed');
+  if (await hasSeeded('demo_users')) {
+    logger.info('Demo users already seeded before, skipping');
     return;
   }
 
-  logger.info('No users found, seeding demo users');
+  logger.info('First time setup: seeding demo users');
   for (const user of demoUsers) {
     try {
       const hashedPassword = await bcrypt.hash(user.password, 10);
@@ -156,16 +168,16 @@ async function seedDemoUsersIfNeeded() {
       }
     }
   }
+  await markSeeded('demo_users');
 }
 
 async function seedSampleRecipesIfNeeded() {
-  const count = await Recipe.countDocuments();
-  if (count > 0) {
-    logger.info('Recipes already exist, skipping sample seed');
+  if (await hasSeeded('sample_recipes')) {
+    logger.info('Sample recipes already seeded before, skipping');
     return;
   }
 
-  logger.info('No recipes found, seeding sample recipes');
+  logger.info('First time setup: seeding sample recipes');
   for (const recipe of sampleRecipes) {
     try {
       const tagIds = [];
@@ -194,6 +206,7 @@ async function seedSampleRecipesIfNeeded() {
       logger.error(`Failed to seed recipe '${recipe.name}': ${err.message}`);
     }
   }
+  await markSeeded('sample_recipes');
 }
 
 // ============ MIDDLEWARE ============
