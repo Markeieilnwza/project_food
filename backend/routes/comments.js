@@ -46,7 +46,7 @@ router.get('/recipe/:recipeId', async (req, res) => {
       return res.status(400).json({ error: 'Invalid recipe ID' });
     }
 
-    const comments = await Comment.find({ recipeId: new mongoose.Types.ObjectId(recipeId) })
+    const comments = await Comment.find({ recipeId: recipeId })  // Let mongoose auto-cast
       .sort({ createdAt: -1 })
       .lean();
 
@@ -98,13 +98,13 @@ router.post('/', verifyToken, async (req, res) => {
     console.log('[COMMENTS] About to create comment with:', { recipeId, userId, username, text });
 
     const comment = await Comment.create({
-      recipeId: new mongoose.Types.ObjectId(recipeId),
+      recipeId: recipeId,  // Let mongoose auto-cast to ObjectId
       userId,
       username,
       text
     });
 
-    console.log('[COMMENTS] Comment created successfully:', comment);
+    console.log('[COMMENTS] Comment created:', { id: comment._id, recipeId: comment.recipeId });
 
     res.status(201).json({
       id: comment._id,
