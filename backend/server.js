@@ -148,6 +148,14 @@ async function seedDemoUsersIfNeeded() {
     return;
   }
 
+  // If users already exist (migrated data), just mark as seeded
+  const userCount = await User.countDocuments();
+  if (userCount > 0) {
+    logger.info('Users already exist, marking as seeded');
+    await markSeeded('demo_users');
+    return;
+  }
+
   logger.info('First time setup: seeding demo users');
   for (const user of demoUsers) {
     try {
@@ -174,6 +182,14 @@ async function seedDemoUsersIfNeeded() {
 async function seedSampleRecipesIfNeeded() {
   if (await hasSeeded('sample_recipes')) {
     logger.info('Sample recipes already seeded before, skipping');
+    return;
+  }
+
+  // If recipes already exist (migrated data), just mark as seeded
+  const recipeCount = await Recipe.countDocuments();
+  if (recipeCount > 0) {
+    logger.info('Recipes already exist, marking as seeded');
+    await markSeeded('sample_recipes');
     return;
   }
 
