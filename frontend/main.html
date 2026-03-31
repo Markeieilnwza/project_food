@@ -418,7 +418,7 @@
                                     <span style="color: #999; font-size: 0.85em; margin-left: 10px;">${new Date(comment.createdAt).toLocaleDateString()}</span>
                                 </div>
                                 ${(isLoggedIn() && (getCurrentUserId() === comment.userId || isAdmin())) ? `
-                                    <button onclick="deleteComment(${comment.id}, ${recipeId})" style="background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 0.9em;">Delete</button>
+                                    <button onclick="deleteComment('${comment.id}', '${recipeId}')" style="background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 0.9em;">Delete</button>
                                 ` : ''}
                             </div>
                             <p style="margin: 8px 0 0 0; color: #333;">${escapeHtml(comment.text)}</p>
@@ -809,7 +809,7 @@
                     ${isLoggedIn() ? `
                         <div class="comment-form">
                             <textarea id="commentInput" placeholder="Share your thoughts about this recipe..." maxlength="500" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; resize: vertical; min-height: 80px;"></textarea>
-                            <button onclick="submitComment(${recipe.id})" style="margin-top: 10px; background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">Post Comment</button>
+                            <button onclick="submitComment('${recipe.id}')" style="margin-top: 10px; background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">Post Comment</button>
                         </div>
                     ` : `<p style="color: #666;"><a href="login.html">Sign in</a> to comment on this recipe</p>`}
                     <div id="commentsList" style="margin-top: 20px;"></div>
