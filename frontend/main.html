@@ -418,6 +418,8 @@
         }
 
         async function submitComment(recipeId) {
+            console.log('=== submitComment called with recipeId:', recipeId);
+            
             if (!isLoggedIn()) {
                 alert('Please sign in to comment');
                 window.location.href = 'login.html';
@@ -425,6 +427,12 @@
             }
 
             const commentInput = document.getElementById('commentInput');
+            if (!commentInput) {
+                console.error('ERROR: commentInput element not found!');
+                alert('Error: Comment form not found');
+                return;
+            }
+
             const text = commentInput.value.trim();
 
             if (!text) {
@@ -441,15 +449,21 @@
                 recipeId: recipeId,
                 text: text,
                 token: localStorage.getItem('token')?.substring(0, 20) + '...',
-                loginStatus: isLoggedIn()
+                loginStatus: isLoggedIn(),
+                API_URL: API_URL
             });
 
             try {
-                const body = JSON.stringify({
-                    recipeId: recipeId,
+                const payloadObj = {
+                    recipeId: String(recipeId),
                     text: text
-                });
+                };
+                const body = JSON.stringify(payloadObj);
                 console.log('DEBUG submitComment body:', body);
+                console.log('DEBUG headers:', {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')?.substring(0, 20)}...`
+                });
 
                 const response = await fetch(`${API_URL}/comments`, {
                     method: 'POST',
@@ -462,23 +476,29 @@
 
                 console.log('DEBUG submitComment response:', {
                     status: response.status,
-                    ok: response.ok
+                    statusText: response.statusText,
+                    ok: response.ok,
+                    headers: {
+                        'content-type': response.headers.get('content-type')
+                    }
                 });
 
+                const responseData = await response.json();
+                console.log('DEBUG submitComment response data:', responseData);
+
                 if (!response.ok) {
-                    const result = await response.json();
-                    console.log('DEBUG submitComment error:', result);
-                    alert(result.error || 'Failed to post comment');
+                    console.error('Response error:', responseData);
+                    alert(responseData.error || `Failed to post comment (${response.status})`);
                     return;
                 }
 
-                const responseData = await response.json();
-                console.log('DEBUG submitComment success:', responseData);
+                console.log('SUCCESS: Comment posted:', responseData);
                 commentInput.value = '';
                 await loadComments(recipeId);
             } catch (error) {
-                console.error('Error posting comment:', error);
-                alert('Error posting comment. Please try again.');
+                console.error('Exception in submitComment:', error);
+                console.error('Error stack:', error.stack);
+                alert('Error posting comment: ' + error.message);
             }
         }
 
