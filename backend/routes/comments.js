@@ -1,23 +1,8 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
 const router = express.Router();
 const Comment = require('../models/Comment');
 const User = require('../models/User');
-
-function verifyToken(req, res, next) {
-  const token = req.headers.authorization?.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ error: 'Token required' });
-  }
-
-  try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key-here');
-    next();
-  } catch (error) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
-  }
-}
+const { verifyToken } = require('../middleware');
 
 // Get all comments for a recipe
 router.get('/recipe/:recipeId', async (req, res) => {
