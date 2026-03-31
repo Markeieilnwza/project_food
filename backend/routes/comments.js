@@ -67,12 +67,16 @@ router.post('/', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'Comment must be 1-500 characters' });
     }
 
+    console.log('DEBUG: About to create comment with:', { recipeId, userId, username, text });
+
     const comment = await Comment.create({
       recipeId,
       userId,
       username,
       text
     });
+
+    console.log('DEBUG: Comment created successfully:', comment);
 
     res.status(201).json({
       id: comment._id,
@@ -82,8 +86,9 @@ router.post('/', verifyToken, async (req, res) => {
       createdAt: comment.createdAt
     });
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Server error' });
+    console.error('DEBUG: Error creating comment:', error.message);
+    console.error('DEBUG: Full error:', error);
+    res.status(500).json({ error: 'Server error: ' + error.message });
   }
 });
 
