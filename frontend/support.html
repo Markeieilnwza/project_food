@@ -19,7 +19,9 @@
                 <a href="main.html#recipes">Recipes</a>
                 <a href="https://www.google.com/maps" target="_blank">Groceries Near Me</a>
                 <a href="support.html">Contact</a>
-                <a href="login.html">Sign In</a>
+                <span id="userInfo" style="color: #333; display: none;"></span>
+                <button id="logoutBtn" class="nav-btn nav-link-btn logout-link-btn" style="display: none;">Logout</button>
+                <a id="loginLink" href="login.html">Sign In</a>
             </nav>
         </div>
     </header>
@@ -69,5 +71,42 @@
         <p>&copy; 2026 FoodShare - Share Your Favorite Recipes</p>
         <p><a href="support.html">Contact Us</a> | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
     </footer>
+
+    <script>
+        function isLoggedIn() {
+            const token = localStorage.getItem('token');
+            return token !== null && token !== '';
+        }
+
+        function checkUserLogin() {
+            const loginLink = document.getElementById('loginLink');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const userInfo = document.getElementById('userInfo');
+
+            if (isLoggedIn()) {
+                const username = localStorage.getItem('username');
+                loginLink.style.display = 'none';
+                logoutBtn.style.display = 'block';
+                userInfo.textContent = `Welcome, ${username}`;
+                userInfo.style.display = 'block';
+            } else {
+                loginLink.style.display = 'block';
+                logoutBtn.style.display = 'none';
+                userInfo.style.display = 'none';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            localStorage.removeItem('userId');
+            window.location.href = 'login.html';
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+
+        // Check login status on page load
+        window.addEventListener('load', checkUserLogin);
+    </script>
 </body>
 </html>
