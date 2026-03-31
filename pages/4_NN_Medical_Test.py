@@ -127,15 +127,28 @@ if submitted:
 
         # Encode categorical features ด้วย encoders ที่บันทึกไว้
         categorical_cols = ["gender", "blood_type", "department", "diagnosis"]
-        if isinstance(encoders, dict):
-            for col in categorical_cols:
-                if col in encoders:
-                    df_input[col] = encoders[col].transform(df_input[col])
-        elif isinstance(encoders, list):
-            # กรณี encoders เป็น list ของ LabelEncoder ตามลำดับ categorical_cols
-            for i, col in enumerate(categorical_cols):
-                if i < len(encoders):
-                    df_input[col] = encoders[i].transform(df_input[col])
+        try:
+            if isinstance(encoders, dict):
+                for col in categorical_cols:
+                    if col in encoders:
+                        df_input[col] = encoders[col].transform(df_input[col])
+            elif isinstance(encoders, list):
+                for i, col in enumerate(categorical_cols):
+                    if i < len(encoders):
+                        df_input[col] = encoders[i].transform(df_input[col])
+        except Exception:
+            pass
+
+        # Fallback: ถ้า encoding ไม่สำเร็จ ใช้ manual mapping
+        fallback_map = {
+            "gender": {"Female": 0, "Male": 1},
+            "blood_type": {"A": 0, "AB": 1, "B": 2, "O": 3},
+            "department": {"Cardiology": 0, "Endocrinology": 1, "General": 2, "Pulmonology": 3},
+            "diagnosis": {"Asthma": 0, "Diabetes": 1, "Healthy": 2, "Heart Disease": 3, "Hypertension": 4}
+        }
+        for col in categorical_cols:
+            if df_input[col].dtype == object:
+                df_input[col] = df_input[col].map(fallback_map[col])
 
         # Scale features ด้วย scaler ที่บันทึกไว้
         df_scaled = scaler.transform(df_input)

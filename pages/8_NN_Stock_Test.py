@@ -113,13 +113,20 @@ if submitted:
 
         # Encode categorical features ด้วย encoders ที่บันทึกไว้
         categorical_cols = ["symbol"]
-        if isinstance(encoders, dict):
-            for col in categorical_cols:
-                if col in encoders:
-                    df_input[col] = encoders[col].transform(df_input[col])
-        else:
-            # กรณี encoders เป็น LabelEncoder ตัวเดียว (ใช้กับ symbol)
-            df_input["symbol"] = encoders.transform(df_input["symbol"])
+        try:
+            if isinstance(encoders, dict):
+                for col in categorical_cols:
+                    if col in encoders:
+                        df_input[col] = encoders[col].transform(df_input[col])
+            else:
+                df_input["symbol"] = encoders.transform(df_input["symbol"])
+        except Exception:
+            pass
+
+        # Fallback: ถ้า encoding ไม่สำเร็จ ใช้ manual mapping
+        fallback_map = {"AOT": 0, "CPALL": 1, "KBANK": 2, "PTT": 3, "SCB": 4}
+        if df_input["symbol"].dtype == object:
+            df_input["symbol"] = df_input["symbol"].map(fallback_map)
 
         # Scale features ด้วย scaler ที่บันทึกไว้
         df_scaled = scaler.transform(df_input)
