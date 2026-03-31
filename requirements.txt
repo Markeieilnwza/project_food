@@ -1,7 +1,7 @@
 streamlit
 scikit-learn
 xgboost
-tensorflow
+tensorflow-cpu==2.15.1
 joblib
 numpy
 pandas
