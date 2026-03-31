@@ -1,7 +1,0 @@
-streamlit
-scikit-learn
-xgboost
-tensorflow==2.18.0
-joblib
-numpy
-pandas
