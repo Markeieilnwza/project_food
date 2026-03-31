@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodShare - Recipe Sharing Community</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="navbar">
+            <div class="logo_main">
+                <img src="imageforSE/logo.avif" alt="FoodShare Logo">
+                <h1>FoodShare</h1>
+            </div>
+            <nav>
+                <a href="#recipes">Recipes</a>
+                <a href="https://www.google.com/maps" target="_blank">Groceries Near Me</a>
+                <a href="support.html">Contact</a>
+                <button id="createRecipeBtn" class="nav-btn nav-link-btn">+ Create Recipe</button>
+                <button id="favoritesBtn" class="nav-btn nav-link-btn">My Favorites</button>
+                <button id="submissionsBtn" class="nav-btn nav-link-btn">My Submissions</button>
+                <button id="adminPanelBtn" class="nav-btn nav-link-btn" style="display: none; background: #ef4444; color: white;">🛡️ Admin Panel</button>
+                <span id="userInfo" style="color: #333; display: none;"></span>
+                <button id="logoutBtn" class="nav-btn nav-link-btn logout-link-btn" style="display: none;">Logout</button>
+                <a id="loginLink" href="login.html">Sign In</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h2>Share Your Favorite Recipes</h2>
+        <p>Discover amazing dishes to cook with friends and family</p>
+    </section>
+
+    <!-- Search and Sort Section -->
+    <div class="search-sort-container">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search by recipe name...">
+            <input type="text" id="ingredientInput" placeholder="Ingredients you have, e.g. chicken, garlic">
+            <input type="number" id="budgetInput" min="0" step="0.01" placeholder="Max budget">
+            <button id="searchBtn">Search</button>
+        </div>
+        <div class="sort-options">
+            <label>Sort by:</label>
+            <select id="sortSelect">
+                <option value="newest">Newest First</option>
+                <option value="rating">Highest Rated</option>
+                <option value="popular">Most Popular</option>
+                <option value="quickest">Quickest to Cook</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section">
+        <div class="filter-group">
+            <label>Difficulty:</label>
+            <div class="filter-buttons">
+                <button class="difficulty-filter active" data-value="">All</button>
+                <button class="difficulty-filter" data-value="Easy">Easy</button>
+                <button class="difficulty-filter" data-value="Medium">Medium</button>
+                <button class="difficulty-filter" data-value="Hard">Hard</button>
+            </div>
+        </div>
+        <div class="filter-group">
+            <label>Tags:</label>
+            <div class="filter-buttons" id="tagFilters"></div>
+        </div>
+        <div class="filter-group">
+            <label>Cooking Time:</label>
+            <div class="time-filter">
+                <input type="range" id="maxTime" min="0" max="180" step="15" value="180">
+                <span id="timeDisplay">Up to 180 mins</span>
+            </div>
+        </div>
+        <button id="resetFilters" class="reset-btn">Reset Filters</button>
+    </div>
+
+    <!-- Recipes Grid -->
+    <div class="recipes-container">
+        <div class="results-info">
+            <span id="recipeCount">Loading...</span>
+        </div>
+        <div class="recipes-grid" id="recipes"></div>
+        <div id="loadMoreContainer" style="text-align: center; padding: 30px;">
+            <button id="loadMoreBtn" class="load-more-btn" style="display: none;">Load More Recipes</button>
+            <div id="loadingSpinner" class="spinner" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Create Recipe Modal -->
+    <div id="createRecipeModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Create New Recipe</h2>
+            <form id="createRecipeForm">
+                <div class="form-group">
+                    <label>Recipe Name *</label>
+                    <input type="text" id="recipeName" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="recipeDescription" rows="3"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Difficulty *</label>
+                        <select id="difficulty" required>
+                            <option value="">Select Difficulty</option>
+                            <option value="Easy">Easy</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Hard">Hard</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Cooking Time (mins) *</label>
+                        <input type="number" id="cookingTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Servings</label>
+                        <input type="number" id="servings" value="4">
+                    </div>
+                    <div class="form-group">
+                        <label>Estimated Budget</label>
+                        <input type="number" id="estimatedCost" min="0" step="0.01" placeholder="Example: 120">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Recipe Image (Optional)</label>
+                    <input type="file" id="imageFile" accept="image/*">
+                    <small style="color: #777; margin-top: 6px;">Choose an image from your device. Maximum size 4 MB.</small>
+                    <div id="imagePreview" style="display: none; margin-top: 12px;">
+                        <img id="previewImg" alt="Recipe preview">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Ingredients (one per line)</label>
+                    <textarea id="ingredients" rows="4" placeholder="Example: 2 cups flour&#10;1 egg&#10;500 ml milk"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Steps (one per line)</label>
+                    <textarea id="steps" rows="4" placeholder="Example: Mix dry ingredients&#10;Add wet ingredients&#10;Bake for 30 mins"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Tags (select one or more)</label>
+                    <div id="tagsContainer" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Nutrition Information</label>
+                    <div class="nutrition-input-grid">
+                        <input type="number" id="nutritionCalories" min="0" step="0.1" placeholder="Calories">
+                        <input type="number" id="nutritionProtein" min="0" step="0.1" placeholder="Protein (g)">
+                        <input type="number" id="nutritionFat" min="0" step="0.1" placeholder="Fat (g)">
+                        <input type="number" id="nutritionCarbs" min="0" step="0.1" placeholder="Carbs (g)">
+                        <input type="number" id="nutritionFiber" min="0" step="0.1" placeholder="Fiber (g)">
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">Create Recipe</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="recipeDetailModal" class="modal" style="display: none;">
+        <div class="modal-content detail-modal-content">
+            <span class="close" id="recipeDetailClose">&times;</span>
+            <div id="recipeDetailBody"></div>
+        </div>
+    </div>
+
+    <div id="favoritesModal" class="modal" style="display: none;">
+        <div class="modal-content favorites-modal-content">
+            <span class="close" id="favoritesClose">&times;</span>
+            <h2>My Favorite Recipes</h2>
+            <div id="favoritesList"></div>
+        </div>
+    </div>
+
+    <div id="submissionsModal" class="modal" style="display: none;">
+        <div class="modal-content favorites-modal-content">
+            <span class="close" id="submissionsClose">&times;</span>
+            <h2>My Submissions</h2>
+            <div id="submissionsList"></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 FoodShare - Share Your Favorite Recipes</p>
+        <p><a href="support.html">Contact Us</a> | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+    </footer>
+
+    <script>
+        const API_URL = window.location.protocol === 'file:'
+            ? 'http://localhost:3000/api'
+            : '/api';
+        const RECIPES_PER_PAGE = 20;
+        const MAX_IMAGE_SIZE_BYTES = 4 * 1024 * 1024;
+        let allTags = [];
+        let currentOffset = 0;
+        let selectedImageDataUrl = '';
+        let currentRecipeDetail = null;
+        let currentUserRating = null;
+        let currentUserRole = localStorage.getItem('role') || 'guest';
+        let recipeDetailCache = new Map();
+        let favoriteRecipeIds = new Set();
+        let currentFilters = {
+            difficulty: '',
+            tags: [],
+            search: '',
+            ingredientQuery: '',
+            maxBudget: '',
+            sort: 'newest',
+            maxTime: 180
+        };
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function getCurrentUserId() {
+            return localStorage.getItem('userId');
+        }
+
+        function resetRecipeImageInput() {
+            selectedImageDataUrl = '';
+            document.getElementById('imageFile').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('previewImg').removeAttribute('src');
+        }
+
+        function getAuthHeaders(extraHeaders = {}) {
+            const token = localStorage.getItem('token');
+            const headers = { ...extraHeaders };
+            if (token) {
+                headers.Authorization = `Bearer ${token}`;
+            }
+            return headers;
+        }
+
+        function isLoggedIn() {
+            return Boolean(getCurrentUserId());
+        }
+
+        function isAdmin() {
+            return currentUserRole === 'admin';
+        }
+
+        async function syncCurrentUserRole() {
+            if (!isLoggedIn()) {
+                currentUserRole = 'guest';
+                localStorage.removeItem('role');
+                return currentUserRole;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/auth/user-role/${getCurrentUserId()}`);
+                const user = await response.json();
+                if (response.ok && user.role) {
+                    currentUserRole = user.role;
+                    localStorage.setItem('role', user.role);
+                }
+            } catch (error) {
+                console.error('Error syncing user role:', error);
+            }
+
+            return currentUserRole;
+        }
+
+        function formatCurrency(value) {
+            if (value === null || value === undefined || value === '') return 'Budget not set';
+            return `฿${Number(value).toFixed(2)}`;
+        }
+
+        function formatQuantity(value) {
+            const numericValue = Number(value);
+            if (!Number.isFinite(numericValue)) return value || '';
+            return Number.isInteger(numericValue) ? `${numericValue}` : `${numericValue.toFixed(2).replace(/\.00$/, '').replace(/0$/, '')}`;
+        }
+
+        function generateStars(rating) {
+            if (!rating) return '☆☆☆☆☆';
+            const full = Math.floor(rating);
+            const half = rating % 1 >= 0.5 ? 1 : 0;
+            const empty = 5 - full - half;
+            return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(empty);
+        }
+
+        function checkUserLogin() {
+            const username = localStorage.getItem('username');
+            const role = localStorage.getItem('role');
+            const loginLink = document.getElementById('loginLink');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const userInfo = document.getElementById('userInfo');
+            const createBtn = document.getElementById('createRecipeBtn');
+            const favoritesBtn = document.getElementById('favoritesBtn');
+            const submissionsBtn = document.getElementById('submissionsBtn');
+            const adminBtn = document.getElementById('adminPanelBtn');
+
+            if (isLoggedIn() && username) {
+                loginLink.style.display = 'none';
+                logoutBtn.style.display = 'block';
+                userInfo.style.display = 'block';
+                favoritesBtn.style.display = 'inline-flex';
+                submissionsBtn.style.display = 'inline-flex';
+                createBtn.style.display = 'block';
+                userInfo.textContent = `👤 ${username}`;
+                
+                // Show admin button if user is admin
+                if (role === 'admin') {
+                    adminBtn.style.display = 'block';
+                } else {
+                    adminBtn.style.display = 'none';
+                }
+            } else {
+                loginLink.style.display = 'block';
+                logoutBtn.style.display = 'none';
+                userInfo.style.display = 'none';
+                favoritesBtn.style.display = 'none';
+                submissionsBtn.style.display = 'none';
+                createBtn.style.display = 'none';
+            }
+        }
+
+        async function loadFavoriteRecipeIds() {
+            if (!isLoggedIn()) {
+                favoriteRecipeIds = new Set();
+                return favoriteRecipeIds;
+            }
+
+            const response = await fetch(`${API_URL}/favorites/${getCurrentUserId()}`, {
+                headers: getAuthHeaders()
+            });
+            if (!response.ok) {
+                favoriteRecipeIds = new Set();
+                return favoriteRecipeIds;
+            }
+
+            const favorites = await response.json();
+            favoriteRecipeIds = new Set((favorites || []).map((recipe) => String(recipe.id)));
+            return favoriteRecipeIds;
+        }
+
+        async function loadTags() {
+            try {
+                const response = await fetch(`${API_URL}/tags`);
+                if (!response.ok) {
+                    throw new Error('Failed to load tags');
+                }
+
+                const tags = await response.json();
+                allTags = Array.isArray(tags) ? tags : [];
+                displayTagFilters();
+            } catch (error) {
+                console.error('Error loading tags:', error);
+                allTags = [];
+                displayTagFilters();
+            }
+        }
+
+        function displayTagFilters() {
+            const container = document.getElementById('tagFilters');
+            container.innerHTML = '<button class="tag-filter active" data-value="">All</button>';
+            allTags.forEach((tag) => {
+                const btn = document.createElement('button');
+                btn.className = 'tag-filter';
+                btn.textContent = tag.name;
+                btn.dataset.value = tag.name;
+                container.appendChild(btn);
+            });
+        }
+
+        async function loadComments(recipeId) {
+            try {
+                const response = await fetch(`${API_URL}/comments/recipe/${recipeId}`);
+                if (!response.ok) throw new Error('Failed to load comments');
+                
+                const comments = await response.json();
+                const container = document.getElementById('commentsList');
+                
+                if (!comments || comments.length === 0) {
+                    container.innerHTML = '<p style="color: #999; text-align: center;">No comments yet. Be the first to share your thoughts!</p>';
+                } else {
+                    container.innerHTML = comments.map(comment => `
+                        <div class="comment-item" style="background: #f9f9f9; padding: 12px; border-radius: 5px; margin-bottom: 10px; border-left: 3px solid #10b981;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <strong style="color: #333;">${escapeHtml(comment.username)}</strong>
+                                    <span style="color: #999; font-size: 0.85em; margin-left: 10px;">${new Date(comment.createdAt).toLocaleDateString()}</span>
+                                </div>
+                                ${(isLoggedIn() && (getCurrentUserId() === comment.userId || isAdmin())) ? `
+                                    <button onclick="deleteComment(${comment.id}, ${recipeId})" style="background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 0.9em;">Delete</button>
+                                ` : ''}
+                            </div>
+                            <p style="margin: 8px 0 0 0; color: #333;">${escapeHtml(comment.text)}</p>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading comments:', error);
+                document.getElementById('commentsList').innerHTML = '<p style="color: #999;">Error loading comments.</p>';
+            }
+        }
+
+        async function submitComment(recipeId) {
+            if (!isLoggedIn()) {
+                alert('Please sign in to comment');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const commentInput = document.getElementById('commentInput');
+            const text = commentInput.value.trim();
+
+            if (!text) {
+                alert('Please write a comment');
+                return;
+            }
+
+            if (text.length > 500) {
+                alert('Comment must be 500 characters or less');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/comments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        recipeId: recipeId,
+                        userId: getCurrentUserId(),
+                        username: localStorage.getItem('username'),
+                        text: text
+                    })
+                });
+
+                if (!response.ok) {
+                    const result = await response.json();
+                    alert(result.error || 'Failed to post comment');
+                    return;
+                }
+
+                commentInput.value = '';
+                await loadComments(recipeId);
+            } catch (error) {
+                console.error('Error posting comment:', error);
+                alert('Error posting comment. Please try again.');
+            }
+        }
+
+        async function deleteComment(commentId, recipeId) {
+            if (!confirm('Delete this comment?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/comments/${commentId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const result = await response.json();
+                    alert(result.error || 'Failed to delete comment');
+                    return;
+                }
+
+                await loadComments(recipeId);
+            } catch (error) {
+                console.error('Error deleting comment:', error);
+                alert('Error deleting comment. Please try again.');
+            }
+        }
+
+        function buildRecipeCard(recipe) {
+            const isFavorite = favoriteRecipeIds.has(String(recipe.id));
+            const tagsHtml = recipe.tags
+                ? recipe.tags.map((tag) => `<span class="tag-badge" style="font-size: 11px;">${escapeHtml(tag.name)}</span>`).join('')
+                : '';
+
+            return `
+                <div class="recipe-card" data-recipe-id="${recipe.id}">
+                    <div class="recipe-card-image-container">
+                        <img src="${recipe.image || 'https://via.placeholder.com/350x250'}" alt="${escapeHtml(recipe.name)}" class="recipe-card-image" onerror="this.src='https://via.placeholder.com/350x250'">
+                        <span class="recipe-difficulty-badge">${escapeHtml(recipe.difficulty || 'Medium')}</span>
+                    </div>
+                    <div class="recipe-card-body">
+                        <h3 class="recipe-card-title">${escapeHtml(recipe.name)}</h3>
+                        <p style="font-size: 13px; color: #666; margin: 0 0 8px 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${escapeHtml(recipe.description || 'No description')}</p>
+                        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;">${tagsHtml}</div>
+                        <div class="recipe-card-footer">
+                            <span class="recipe-card-meta">⏱ ${recipe.cookingTime || '?'} min</span>
+                            <span class="recipe-card-meta">👥 ${recipe.servings || '2'}</span>
+                            <button class="recipe-card-heart ${isFavorite ? 'active' : ''}" data-recipe-id="${recipe.id}">${isFavorite ? '♥' : '♡'}</button>
+                        </div>
+                    </div>
+                    <button class="recipe-card-view-btn" data-view-recipe-id="${recipe.id}">View Recipe</button>
+                </div>
+            `;
+        }
+
+        function displayRecipes(recipes) {
+            const grid = document.getElementById('recipes');
+            if (!recipes || recipes.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; padding: 40px; grid-column: 1/-1;">No recipes found. Try adjusting your filters!</p>';
+                return;
+            }
+            grid.innerHTML = recipes.map(buildRecipeCard).join('');
+        }
+
+        function appendRecipes(recipes) {
+            const grid = document.getElementById('recipes');
+            grid.insertAdjacentHTML('beforeend', recipes.map(buildRecipeCard).join(''));
+        }
+
+        function updateRecipeCount(count) {
+            document.getElementById('recipeCount').textContent = `Showing ${count} recipes`;
+        }
+
+        async function loadRecipes(append = false) {
+            try {
+                const params = new URLSearchParams({
+                    limit: RECIPES_PER_PAGE,
+                    offset: append ? currentOffset : 0,
+                    sort: currentFilters.sort
+                });
+
+                if (currentFilters.difficulty) params.append('difficulty', currentFilters.difficulty);
+                if (currentFilters.tags.length > 0) {
+                    currentFilters.tags.forEach((tag) => params.append('tags', tag));
+                }
+                if (currentFilters.search) params.append('search', currentFilters.search);
+                if (currentFilters.ingredientQuery) params.append('ingredientQuery', currentFilters.ingredientQuery);
+                if (currentFilters.maxBudget) params.append('maxBudget', currentFilters.maxBudget);
+                if (currentFilters.maxTime) params.append('maxTime', currentFilters.maxTime);
+
+                const [response] = await Promise.all([
+                    fetch(`${API_URL}/recipes?${params}`),
+                    loadFavoriteRecipeIds().catch(() => new Set())
+                ]);
+
+                if (!response.ok) {
+                    throw new Error('Failed to load recipes');
+                }
+
+                const data = await response.json();
+                const recipes = Array.isArray(data) ? data : [];
+
+                if (!append) {
+                    displayRecipes(recipes);
+                    currentOffset = recipes.length;
+                } else {
+                    appendRecipes(recipes);
+                    currentOffset += recipes.length;
+                }
+
+                document.getElementById('loadMoreBtn').style.display = recipes.length < RECIPES_PER_PAGE ? 'none' : 'block';
+                updateRecipeCount(document.querySelectorAll('.recipe-card').length);
+            } catch (error) {
+                console.error('Error loading recipes:', error);
+                if (!append) {
+                    displayRecipes([]);
+                }
+                document.getElementById('loadMoreBtn').style.display = 'none';
+                document.getElementById('recipeCount').textContent = 'Unable to load recipes';
+            }
+        }
+
+        async function toggleFavorite(recipeId) {
+            if (!isLoggedIn()) {
+                alert('Please sign in to manage favorites.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const isFavorite = favoriteRecipeIds.has(String(recipeId));
+            const url = isFavorite
+                ? `${API_URL}/favorites/${getCurrentUserId()}/${recipeId}`
+                : `${API_URL}/favorites`;
+            const options = isFavorite
+                ? {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                }
+                : {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                    body: JSON.stringify({ userId: getCurrentUserId(), recipeId })
+                };
+
+            const response = await fetch(url, options);
+            const result = await response.json();
+
+            if (!response.ok) {
+                alert(result.error || 'Failed to update favorites');
+                return;
+            }
+
+            if (isFavorite) {
+                favoriteRecipeIds.delete(String(recipeId));
+            } else {
+                favoriteRecipeIds.add(String(recipeId));
+            }
+
+            updateFavoriteButtons(recipeId);
+            if (currentRecipeDetail && String(currentRecipeDetail.id) === String(recipeId)) {
+                renderRecipeDetail(currentRecipeDetail);
+            }
+        }
+
+        function updateFavoriteButtons(recipeId) {
+            const isFavorite = favoriteRecipeIds.has(String(recipeId));
+            document.querySelectorAll(`[data-recipe-id="${recipeId}"]`).forEach((button) => {
+                if (button.classList.contains('favorite-btn')) {
+                    button.textContent = isFavorite ? '♥ Saved' : '♡ Save';
+                    button.classList.toggle('active', isFavorite);
+                }
+
+                if (button.classList.contains('recipe-card-heart')) {
+                    button.textContent = isFavorite ? '♥' : '♡';
+                    button.classList.toggle('active', isFavorite);
+                }
+            });
+        }
+
+        function getScaleFactor(baseServings, targetServings) {
+            if (!baseServings || !targetServings) return 1;
+            return targetServings / baseServings;
+        }
+
+        function scaleIngredients(recipe, targetServings) {
+            const factor = getScaleFactor(recipe.servings, targetServings);
+            return (recipe.ingredients || []).map((ingredient) => ({
+                ...ingredient,
+                scaledQuantity: Number(ingredient.quantity || 0) * factor
+            }));
+        }
+
+        function scaleNutrition(nutrition, baseServings, targetServings) {
+            if (!nutrition) return null;
+
+            const factor = getScaleFactor(baseServings, targetServings);
+            return {
+                calories: nutrition.calories ? Number(nutrition.calories) * factor : null,
+                protein: nutrition.protein ? Number(nutrition.protein) * factor : null,
+                fat: nutrition.fat ? Number(nutrition.fat) * factor : null,
+                carbs: nutrition.carbs ? Number(nutrition.carbs) * factor : null,
+                fiber: nutrition.fiber ? Number(nutrition.fiber) * factor : null
+            };
+        }
+
+        function renderRecipeDetail(recipe, userRating = null) {
+            const detailBody = document.getElementById('recipeDetailBody');
+            const targetServings = Number(document.getElementById('detailServingsInput')?.value || recipe.servings || 1);
+            const scaledIngredients = scaleIngredients(recipe, targetServings);
+            const nutrition = scaleNutrition(recipe.nutrition, recipe.servings, targetServings);
+            const isFavorite = favoriteRecipeIds.has(String(recipe.id));
+
+            detailBody.innerHTML = `
+                <div class="detail-header" style="display: grid; grid-template-columns: 280px 1fr; gap: 24px; align-items: start;">
+                    <div>
+                        <img src="${recipe.image || 'https://via.placeholder.com/280x200'}" alt="${escapeHtml(recipe.name)}" class="detail-image" style="width: 100%; border-radius: 10px; object-fit: cover; height: 200px;" onerror="this.src='https://via.placeholder.com/280x200'">
+                    </div>
+                    <div class="detail-summary">
+                        <h2 style="margin-bottom: 12px;">${escapeHtml(recipe.name)}</h2>
+                        <p style="font-size: 13px; color: #888; margin-bottom: 12px;">by ${escapeHtml(recipe.createdBy || 'Unknown')}</p>
+                        <p class="detail-description" style="color: #666; margin-bottom: 12px; line-height: 1.5;">${escapeHtml(recipe.description || 'No description')}</p>
+                        <div class="detail-rating-row" style="margin-bottom: 12px;">
+                            <span class="stars">${generateStars(recipe.averageRating)}</span>
+                            <span style="margin-left: 8px; color: #666;">${recipe.averageRating || '0'} (${recipe.totalRatings || 0} ratings)</span>
+                        </div>
+                        <div class="detail-meta-row" style="display: flex; gap: 20px; margin-bottom: 14px; color: #666; font-size: 15px;">
+                            <span style="display: flex; align-items: center; gap: 6px;">⏱ ${recipe.cookingTime || '?'} mins</span>
+                            <span style="display: flex; align-items: center; gap: 6px;">📊 ${escapeHtml(recipe.difficulty || 'Unknown')}</span>
+                            <span style="display: flex; align-items: center; gap: 6px;">💰 ${formatCurrency(recipe.estimatedCost)}</span>
+                        </div>
+                        ${isLoggedIn() ? `
+                        <div class="rating-interactive">
+                            <span class="rating-interactive-label">Rate this recipe:</span>
+                            <div class="interactive-stars" id="interactiveStars">
+                                ${[1,2,3,4,5].map(n => `<button class="star-btn${userRating >= n ? ' active' : ''}" data-rate="${n}" title="${n} star${n > 1 ? 's' : ''}">★</button>`).join('')}
+                            </div>
+                            <span class="your-rating-text" id="yourRatingText">${userRating ? `Your rating: ${userRating}/5` : 'Not rated yet'}</span>
+                        </div>` : ''}
+                        ${(isAdmin() || String(recipe.createdBy) === String(getCurrentUserId())) ? `<div class="recipe-status status-${escapeHtml(recipe.status || 'approved')}">${escapeHtml(recipe.status || 'approved')}</div>` : ''}
+                        ${recipe.adminFeedback ? `<p class="detail-admin-feedback"><strong>Admin feedback:</strong> ${escapeHtml(recipe.adminFeedback)}</p>` : ''}
+                        <div class="tags" style="margin: 12px 0;">
+                            ${(recipe.tags || []).map((tag) => `<span class="tag">${escapeHtml(tag.name)}</span>`).join('')}
+                        </div>
+                        <button class="action-btn favorite-btn ${isFavorite ? 'active' : ''}" id="detailFavoriteBtn" data-recipe-id="${recipe.id}" style="padding: 10px 20px; background: #fef3c7; color: #b45309; border: 2px solid #fbbf24; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; margin-top: 12px;">${isFavorite ? '♥ Saved' : '♡ Save Recipe'}</button>
+                    </div>
+                </div>
+
+                <div class="detail-section" style="margin-top: 24px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+                    <div class="detail-section-header">
+                        <h3>Ingredients</h3>
+                        <div class="detail-servings-control">
+                            <label for="detailServingsInput">Adjust servings</label>
+                            <input type="number" id="detailServingsInput" min="1" value="${targetServings}">
+                        </div>
+                    </div>
+                    <ul class="detail-list">
+                        ${scaledIngredients.length > 0 ? scaledIngredients.map((ingredient) => `
+                            <li>
+                                <strong>${formatQuantity(ingredient.scaledQuantity)}</strong>
+                                <span>${escapeHtml(`${ingredient.unit ? `${ingredient.unit} ` : ''}${ingredient.name}`)}</span>
+                            </li>
+                        `).join('') : '<li>No ingredients listed.</li>'}
+                    </ul>
+                </div>
+
+                <div class="detail-section">
+                    <h3>Step-by-step Method</h3>
+                    <ol class="detail-steps-list">
+                        ${(recipe.steps || []).length > 0 ? recipe.steps.map((step) => `
+                            <li>
+                                <div class="step-card">
+                                    <span class="step-label">Step ${step.stepNumber}</span>
+                                    <p>${escapeHtml(step.description)}</p>
+                                </div>
+                            </li>
+                        `).join('') : '<li>No steps listed.</li>'}
+                    </ol>
+                </div>
+
+                <div class="detail-section">
+                    <h3>Nutrition for ${targetServings} servings</h3>
+                    ${nutrition ? `
+                        <div class="nutrition-grid">
+                            <div class="nutrition-card"><span>Calories</span><strong>${formatQuantity(nutrition.calories)}</strong></div>
+                            <div class="nutrition-card"><span>Protein</span><strong>${formatQuantity(nutrition.protein)} g</strong></div>
+                            <div class="nutrition-card"><span>Fat</span><strong>${formatQuantity(nutrition.fat)} g</strong></div>
+                            <div class="nutrition-card"><span>Carbs</span><strong>${formatQuantity(nutrition.carbs)} g</strong></div>
+                            <div class="nutrition-card"><span>Fiber</span><strong>${formatQuantity(nutrition.fiber)} g</strong></div>
+                        </div>
+                    ` : '<p class="empty-state">No nutrition data for this recipe yet.</p>'}
+                </div>
+
+                <div class="detail-section">
+                    <h3>💬 Comments</h3>
+                    ${isLoggedIn() ? `
+                        <div class="comment-form">
+                            <textarea id="commentInput" placeholder="Share your thoughts about this recipe..." maxlength="500" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; resize: vertical; min-height: 80px;"></textarea>
+                            <button onclick="submitComment(${recipe.id})" style="margin-top: 10px; background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">Post Comment</button>
+                        </div>
+                    ` : `<p style="color: #666;"><a href="login.html">Sign in</a> to comment on this recipe</p>`}
+                    <div id="commentsList" style="margin-top: 20px;"></div>
+                </div>
+            `;
+
+            // Load comments
+            if (recipe.id) {
+                loadComments(recipe.id);
+            }
+
+            document.getElementById('detailServingsInput').addEventListener('input', (event) => {
+                const nextValue = Math.max(1, Number(event.target.value) || recipe.servings || 1);
+                event.target.value = nextValue;
+                renderRecipeDetail({ ...recipe }, currentUserRating);
+            });
+
+            document.getElementById('detailFavoriteBtn').addEventListener('click', () => toggleFavorite(recipe.id));
+
+            if (isLoggedIn()) {
+                const starBtns = detailBody.querySelectorAll('.star-btn');
+                starBtns.forEach((btn) => {
+                    btn.addEventListener('mouseenter', () => {
+                        const hoverRating = Number(btn.dataset.rate);
+                        starBtns.forEach((s, i) => s.classList.toggle('hover', i < hoverRating));
+                    });
+                    btn.addEventListener('mouseleave', () => {
+                        starBtns.forEach((s) => s.classList.remove('hover'));
+                    });
+                    btn.addEventListener('click', () => {
+                        rateRecipe(recipe.id, Number(btn.dataset.rate));
+                    });
+                });
+            }
+        }
+
+        async function rateRecipe(recipeId, rating) {
+            if (!isLoggedIn()) {
+                alert('Please sign in to rate recipes.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/ratings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                    body: JSON.stringify({ userId: getCurrentUserId(), recipeId, rating })
+                });
+                const result = await response.json();
+
+                if (!response.ok) {
+                    alert(result.error || 'Failed to submit rating');
+                    return;
+                }
+
+                currentUserRating = rating;
+
+                // Refresh recipe from server to get updated average
+                recipeDetailCache.delete(String(recipeId));
+                const recipeRes = await fetch(`${API_URL}/recipes/${recipeId}`);
+                if (recipeRes.ok) {
+                    const freshRecipe = await recipeRes.json();
+                    recipeDetailCache.set(String(recipeId), freshRecipe);
+                    currentRecipeDetail = freshRecipe;
+                    renderRecipeDetail(freshRecipe, currentUserRating);
+                }
+            } catch (error) {
+                console.error('Error rating recipe:', error);
+                alert('Failed to submit rating.');
+            }
+        }
+
+        async function viewRecipe(recipeId) {
+            try {
+                let recipe = recipeDetailCache.get(String(recipeId));
+                if (!recipe) {
+                    const params = new URLSearchParams();
+                    if (isLoggedIn()) params.append('userId', getCurrentUserId());
+                    const queryString = params.toString() ? `?${params.toString()}` : '';
+                    const response = await fetch(`${API_URL}/recipes/${recipeId}${queryString}`);
+                    recipe = await response.json();
+                    if (!response.ok) {
+                        alert(recipe.error || 'Failed to load recipe details');
+                        return;
+                    }
+                    recipeDetailCache.set(String(recipeId), recipe);
+                }
+
+                // Fetch user's existing rating for this recipe
+                currentUserRating = null;
+                if (isLoggedIn()) {
+                    try {
+                        const ratingRes = await fetch(`${API_URL}/ratings/user/${getCurrentUserId()}/recipe/${recipeId}`, {
+                            headers: getAuthHeaders()
+                        });
+                        if (ratingRes.ok) {
+                            const ratingData = await ratingRes.json();
+                            currentUserRating = ratingData.rating;
+                        }
+                    } catch (e) { /* ignore */ }
+                }
+
+                currentRecipeDetail = recipe;
+                renderRecipeDetail(recipe, currentUserRating);
+                document.getElementById('recipeDetailModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading recipe detail:', error);
+                alert('Failed to load recipe details.');
+            }
+        }
+
+        async function openFavoritesModal() {
+            if (!isLoggedIn()) {
+                alert('Please sign in first to view your favorite recipes.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/favorites/${getCurrentUserId()}`, {
+                    headers: getAuthHeaders()
+                });
+                const recipes = await response.json();
+                const container = document.getElementById('favoritesList');
+
+                if (!recipes || recipes.length === 0) {
+                    container.innerHTML = '<p class="empty-state">You have no saved recipes yet.</p>';
+                } else {
+                    container.innerHTML = recipes.map((recipe) => `
+                        <div class="favorite-item">
+                            <img src="${recipe.image || 'https://via.placeholder.com/120x90'}" alt="${escapeHtml(recipe.name)}" class="favorite-thumb" onerror="this.src='https://via.placeholder.com/120x90'">
+                            <div class="favorite-item-content">
+                                <h3>${escapeHtml(recipe.name)}</h3>
+                                <p>${escapeHtml(recipe.description || 'No description')}</p>
+                                <div class="favorite-item-actions">
+                                    <button class="action-btn view-btn" data-view-recipe-id="${recipe.id}">View Recipe</button>
+                                    <button class="action-btn favorite-btn active" data-recipe-id="${recipe.id}">♥ Saved</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                document.getElementById('favoritesModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading favorites:', error);
+                alert('Failed to load favorites.');
+            }
+        }
+
+        function buildSubmissionRow(recipe) {
+            return `
+                <div class="favorite-item submission-item">
+                    <img src="${recipe.image || 'https://via.placeholder.com/120x90'}" alt="${escapeHtml(recipe.name)}" class="favorite-thumb" onerror="this.src='https://via.placeholder.com/120x90'">
+                    <div class="favorite-item-content">
+                        <div class="submission-header-row">
+                            <h3>${escapeHtml(recipe.name)}</h3>
+                            <span class="recipe-status status-${escapeHtml(recipe.status || 'pending')}">${escapeHtml(recipe.status || 'pending')}</span>
+                        </div>
+                        <p>${escapeHtml(recipe.description || 'No description')}</p>
+                        ${recipe.adminFeedback ? `<p class="detail-admin-feedback"><strong>Feedback:</strong> ${escapeHtml(recipe.adminFeedback)}</p>` : ''}
+                        <div class="favorite-item-actions">
+                            <button class="action-btn view-btn" data-view-recipe-id="${recipe.id}">View Recipe</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function openSubmissionsModal() {
+            if (!isLoggedIn()) {
+                alert('Please sign in first to view your submissions.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/recipes/my/submissions/${getCurrentUserId()}`, {
+                    headers: getAuthHeaders()
+                });
+                const recipes = await response.json();
+                const container = document.getElementById('submissionsList');
+
+                if (!response.ok) {
+                    alert(recipes.error || 'Failed to load submissions');
+                    return;
+                }
+
+                container.innerHTML = recipes.length > 0
+                    ? recipes.map(buildSubmissionRow).join('')
+                    : '<p class="empty-state">You have not submitted any recipes yet.</p>';
+
+                document.getElementById('submissionsModal').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading submissions:', error);
+                alert('Failed to load submissions.');
+            }
+        }
+
+        async function loadAvailableTags() {
+            try {
+                const response = await fetch(`${API_URL}/tags`);
+                const tags = await response.json();
+                const tagsContainer = document.getElementById('tagsContainer');
+                tagsContainer.innerHTML = '';
+
+                tags.forEach((tag) => {
+                    const label = document.createElement('label');
+                    label.style.display = 'flex';
+                    label.style.alignItems = 'center';
+                    label.style.cursor = 'pointer';
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.value = tag.name;
+                    checkbox.name = 'tags';
+                    checkbox.style.marginRight = '8px';
+
+                    const span = document.createElement('span');
+                    span.textContent = tag.name;
+
+                    label.appendChild(checkbox);
+                    label.appendChild(span);
+                    tagsContainer.appendChild(label);
+                });
+            } catch (error) {
+                console.error('Error loading tags:', error);
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function bindStaticEvents() {
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                localStorage.removeItem('userId');
+                localStorage.removeItem('username');
+                localStorage.removeItem('email');
+                localStorage.removeItem('token');
+                localStorage.removeItem('role');
+                location.reload();
+            });
+
+            document.getElementById('favoritesBtn').addEventListener('click', openFavoritesModal);
+            document.getElementById('submissionsBtn').addEventListener('click', openSubmissionsModal);
+            document.getElementById('recipeDetailClose').addEventListener('click', () => closeModal('recipeDetailModal'));
+            document.getElementById('favoritesClose').addEventListener('click', () => closeModal('favoritesModal'));
+            document.getElementById('submissionsClose').addEventListener('click', () => closeModal('submissionsModal'));
+            document.querySelector('#createRecipeModal .close').addEventListener('click', () => closeModal('createRecipeModal'));
+
+            document.getElementById('sortSelect').addEventListener('change', (event) => {
+                currentFilters.sort = event.target.value;
+                loadRecipes();
+            });
+
+            document.querySelectorAll('.difficulty-filter').forEach((button) => {
+                button.addEventListener('click', (event) => {
+                    document.querySelectorAll('.difficulty-filter').forEach((btn) => btn.classList.remove('active'));
+                    event.target.classList.add('active');
+                    currentFilters.difficulty = event.target.dataset.value;
+                    loadRecipes();
+                });
+            });
+
+            document.getElementById('tagFilters').addEventListener('click', (event) => {
+                if (!event.target.classList.contains('tag-filter')) return;
+
+                const tagValue = event.target.dataset.value;
+                if (tagValue === '') {
+                    currentFilters.tags = [];
+                    document.querySelectorAll('.tag-filter').forEach((button) => button.classList.remove('active'));
+                    event.target.classList.add('active');
+                } else {
+                    document.querySelector('.tag-filter[data-value=""]').classList.remove('active');
+                    const index = currentFilters.tags.indexOf(tagValue);
+                    if (index > -1) {
+                        currentFilters.tags.splice(index, 1);
+                        event.target.classList.remove('active');
+                    } else {
+                        currentFilters.tags.push(tagValue);
+                        event.target.classList.add('active');
+                    }
+                    if (currentFilters.tags.length === 0) {
+                        document.querySelector('.tag-filter[data-value=""]').classList.add('active');
+                    }
+                }
+                loadRecipes();
+            });
+
+            document.getElementById('maxTime').addEventListener('input', (event) => {
+                currentFilters.maxTime = event.target.value;
+                document.getElementById('timeDisplay').textContent = `Up to ${event.target.value} mins`;
+                loadRecipes();
+            });
+
+            document.getElementById('searchBtn').addEventListener('click', () => {
+                currentFilters.search = document.getElementById('searchInput').value.trim();
+                currentFilters.ingredientQuery = document.getElementById('ingredientInput').value.trim();
+                currentFilters.maxBudget = document.getElementById('budgetInput').value.trim();
+                loadRecipes();
+            });
+
+            ['searchInput', 'ingredientInput', 'budgetInput'].forEach((id) => {
+                document.getElementById(id).addEventListener('keypress', (event) => {
+                    if (event.key === 'Enter') {
+                        document.getElementById('searchBtn').click();
+                    }
+                });
+            });
+
+            document.getElementById('resetFilters').addEventListener('click', () => {
+                currentFilters = {
+                    difficulty: '',
+                    tags: [],
+                    search: '',
+                    ingredientQuery: '',
+                    maxBudget: '',
+                    sort: 'newest',
+                    maxTime: 180
+                };
+                document.getElementById('searchInput').value = '';
+                document.getElementById('ingredientInput').value = '';
+                document.getElementById('budgetInput').value = '';
+                document.getElementById('sortSelect').value = 'newest';
+                document.getElementById('maxTime').value = 180;
+                document.getElementById('timeDisplay').textContent = 'Up to 180 mins';
+                document.querySelectorAll('.difficulty-filter, .tag-filter').forEach((button) => button.classList.remove('active'));
+                document.querySelector('.difficulty-filter[data-value=""]').classList.add('active');
+                document.querySelector('.tag-filter[data-value=""]').classList.add('active');
+                loadRecipes();
+            });
+
+            document.getElementById('loadMoreBtn').addEventListener('click', () => loadRecipes(true));
+
+            document.getElementById('adminPanelBtn').addEventListener('click', () => {
+                window.location.href = 'admin.html';
+            });
+
+            document.getElementById('createRecipeBtn').addEventListener('click', () => {
+                if (!isLoggedIn()) {
+                    alert('Please log in first to create a recipe');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                loadAvailableTags();
+                resetRecipeImageInput();
+                document.getElementById('createRecipeModal').style.display = 'block';
+            });
+
+            document.getElementById('imageFile').addEventListener('change', (event) => {
+                const file = event.target.files[0];
+
+                if (!file) {
+                    resetRecipeImageInput();
+                    return;
+                }
+
+                if (file.size > MAX_IMAGE_SIZE_BYTES) {
+                    alert('Image is too large. Please choose a file smaller than 4 MB.');
+                    resetRecipeImageInput();
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (loadEvent) => {
+                    selectedImageDataUrl = loadEvent.target.result;
+                    document.getElementById('previewImg').src = selectedImageDataUrl;
+                    document.getElementById('imagePreview').style.display = 'block';
+                };
+                reader.onerror = () => {
+                    alert('Failed to read the selected image. Please try another file.');
+                    resetRecipeImageInput();
+                };
+                reader.readAsDataURL(file);
+            });
+
+            document.getElementById('createRecipeForm').addEventListener('submit', async (event) => {
+                event.preventDefault();
+                if (!isLoggedIn()) {
+                    alert('Please log in first');
+                    return;
+                }
+
+                const ingredientsList = document.getElementById('ingredients').value
+                    .split('\n')
+                    .filter((item) => item.trim())
+                    .map((item) => {
+                        const match = item.match(/^([\d.]+)\s*(.*)$/);
+                        if (match) {
+                            return { quantity: parseFloat(match[1]), name: (match[2] || '').trim() || item.trim(), unit: '' };
+                        }
+                        return { quantity: 1, name: item.trim(), unit: '' };
+                    });
+
+                const stepsList = document.getElementById('steps').value
+                    .split('\n')
+                    .filter((step) => step.trim());
+
+                const selectedTags = Array.from(document.querySelectorAll('input[name="tags"]:checked')).map((checkbox) => checkbox.value);
+
+                const nutrition = {
+                    calories: document.getElementById('nutritionCalories').value || null,
+                    protein: document.getElementById('nutritionProtein').value || null,
+                    fat: document.getElementById('nutritionFat').value || null,
+                    carbs: document.getElementById('nutritionCarbs').value || null,
+                    fiber: document.getElementById('nutritionFiber').value || null
+                };
+
+                const hasNutrition = Object.values(nutrition).some((value) => value !== null && value !== '');
+
+                const recipeData = {
+                    userId: getCurrentUserId(),
+                    name: document.getElementById('recipeName').value.trim(),
+                    description: document.getElementById('recipeDescription').value.trim(),
+                    difficulty: document.getElementById('difficulty').value,
+                    cookingTime: parseInt(document.getElementById('cookingTime').value, 10),
+                    servings: parseInt(document.getElementById('servings').value, 10) || 4,
+                    estimatedCost: document.getElementById('estimatedCost').value || null,
+                    image: selectedImageDataUrl || 'https://via.placeholder.com/400x300',
+                    ingredients: ingredientsList,
+                    steps: stepsList,
+                    tags: selectedTags,
+                    nutrition: hasNutrition ? nutrition : null
+                };
+
+                try {
+                    const response = await fetch(`${API_URL}/recipes`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                        body: JSON.stringify(recipeData)
+                    });
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        alert(result.error || 'Failed to create recipe');
+                        return;
+                    }
+
+                    alert(result.message || 'Recipe created successfully!');
+                    event.target.reset();
+                    resetRecipeImageInput();
+                    closeModal('createRecipeModal');
+                    loadRecipes();
+                } catch (error) {
+                    console.error('Error creating recipe:', error);
+                    alert('Failed to create recipe.');
+                }
+            });
+
+            document.getElementById('recipes').addEventListener('click', (event) => {
+                const favoriteButton = event.target.closest('.favorite-btn, .recipe-card-heart');
+                const viewButton = event.target.closest('[data-view-recipe-id]');
+
+                if (favoriteButton) {
+                    toggleFavorite(favoriteButton.dataset.recipeId);
+                }
+
+                if (viewButton) {
+                    viewRecipe(viewButton.dataset.viewRecipeId);
+                }
+            });
+
+            document.getElementById('favoritesList').addEventListener('click', (event) => {
+                const favoriteButton = event.target.closest('.favorite-btn');
+                const viewButton = event.target.closest('[data-view-recipe-id]');
+
+                if (favoriteButton) {
+                    toggleFavorite(favoriteButton.dataset.recipeId).then(openFavoritesModal);
+                }
+
+                if (viewButton) {
+                    closeModal('favoritesModal');
+                    viewRecipe(viewButton.dataset.viewRecipeId);
+                }
+            });
+
+            document.getElementById('submissionsList').addEventListener('click', (event) => {
+                const viewButton = event.target.closest('[data-view-recipe-id]');
+
+                if (viewButton) {
+                    closeModal('submissionsModal');
+                    viewRecipe(viewButton.dataset.viewRecipeId);
+                }
+            });
+
+            window.addEventListener('click', (event) => {
+                ['createRecipeModal', 'recipeDetailModal', 'favoritesModal', 'submissionsModal'].forEach((modalId) => {
+                    const modal = document.getElementById(modalId);
+                    if (event.target === modal) {
+                        closeModal(modalId);
+                    }
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await syncCurrentUserRole();
+            if (isAdmin()) {
+                window.location.href = 'admin.html';
+                return;
+            }
+            checkUserLogin();
+            bindStaticEvents();
+            await loadTags();
+            await loadRecipes();
+        });
+    </script>
+</body>
+</html>

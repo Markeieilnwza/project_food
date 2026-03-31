@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodShare - Register</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-page-body">
+    <main class="auth-shell">
+        <section class="auth-stage">
+            <div class="auth-card auth-card-register">
+                <a href="main.html" class="auth-close" aria-label="Close">x</a>
+
+                <div class="auth-brand">
+                    <img src="imageforSE/logo.avif" alt="FoodShare Logo">
+                    <span>FoodShare</span>
+                </div>
+
+                <div class="auth-header">
+                    <h1>Create Your Account</h1>
+                    <p>Join FoodShare and start saving, rating, and sharing recipes.</p>
+                </div>
+
+                <div id="errorMsg" class="auth-alert auth-alert-error" style="display: none;"></div>
+                <div id="successMsg" class="auth-alert auth-alert-success" style="display: none;"></div>
+
+                <form id="registerForm" class="auth-form">
+                    <div class="auth-field">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" placeholder="Choose a username" required>
+                    </div>
+
+                    <div class="auth-field">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" placeholder="your@email.com" required>
+                    </div>
+
+                    <div class="auth-field">
+                        <label for="password">Password</label>
+                        <div class="auth-password-wrap">
+                            <input type="password" id="password" name="password" placeholder="Create a password" required>
+                            <button type="button" class="auth-toggle-password" data-target="password">Show</button>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="registerBtn" class="auth-primary-btn">Create Account</button>
+                </form>
+
+                <p class="auth-helper-text">Create your account directly with your username, email, and password.</p>
+
+                <p class="auth-footer-text">
+                    Already have an account?
+                    <a href="login.html">Sign In</a>
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const API_URL = window.location.protocol === 'file:'
+            ? 'http://localhost:3000/api'
+            : '/api';
+
+        document.querySelectorAll('.auth-toggle-password').forEach((button) => {
+            button.addEventListener('click', () => {
+                const targetInput = document.getElementById(button.dataset.target);
+                const nextType = targetInput.type === 'password' ? 'text' : 'password';
+                targetInput.type = nextType;
+                button.textContent = nextType === 'password' ? 'Show' : 'Hide';
+            });
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!username) {
+                showError('Please enter a username');
+                return;
+            }
+
+            if (!email) {
+                showError('Please enter an email');
+                return;
+            }
+
+            if (!password) {
+                showError('Please enter a password');
+                return;
+            }
+
+            const btn = document.getElementById('registerBtn');
+            btn.disabled = true;
+            btn.textContent = 'Registering...';
+
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, username })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Save user info in localStorage after registration
+                    localStorage.setItem('userId', data.userId);
+                    localStorage.setItem('username', data.username);
+                    localStorage.setItem('email', data.email);
+                    if (data.token) {
+                        localStorage.setItem('token', data.token);
+                    }
+                    if (data.role) {
+                        localStorage.setItem('role', data.role);
+                    }
+                    
+                    showSuccess('✓ Account created successfully! Redirecting...');
+                    setTimeout(() => {
+                        window.location.href = 'main.html';
+                    }, 2000);
+                } else {
+                    showError(data.error || 'Registration failed');
+                    btn.disabled = false;
+                    btn.textContent = 'Create Account';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Network error. Check backend is running.');
+                btn.disabled = false;
+                btn.textContent = 'Create Account';
+            }
+        });
+
+        function showError(msg) {
+            const errorDiv = document.getElementById('errorMsg');
+            errorDiv.textContent = msg;
+            errorDiv.style.display = 'block';
+            document.getElementById('successMsg').style.display = 'none';
+        }
+
+        function showSuccess(msg) {
+            const successDiv = document.getElementById('successMsg');
+            successDiv.textContent = msg;
+            successDiv.style.display = 'block';
+            document.getElementById('errorMsg').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
