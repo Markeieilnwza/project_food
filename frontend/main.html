@@ -387,15 +387,29 @@
 
         async function loadComments(recipeId) {
             try {
-                const response = await fetch(`${API_URL}/comments/recipe/${recipeId}`);
-                if (!response.ok) throw new Error('Failed to load comments');
+                console.log('[LOAD COMMENTS] Fetching comments for recipeId:', recipeId);
+                const url = `${API_URL}/comments/recipe/${recipeId}`;
+                console.log('[LOAD COMMENTS] URL:', url);
+                
+                const response = await fetch(url);
+                console.log('[LOAD COMMENTS] Response status:', response.status, response.statusText);
+                
+                if (!response.ok) {
+                    const errText = await response.text();
+                    console.error('[LOAD COMMENTS] Response not ok:', errText);
+                    throw new Error('Failed to load comments');
+                }
                 
                 const comments = await response.json();
+                console.log('[LOAD COMMENTS] Received comments:', comments);
+                
                 const container = document.getElementById('commentsList');
                 
                 if (!comments || comments.length === 0) {
+                    console.log('[LOAD COMMENTS] No comments, showing empty state');
                     container.innerHTML = '<p style="color: #999; text-align: center;">No comments yet. Be the first to share your thoughts!</p>';
                 } else {
+                    console.log('[LOAD COMMENTS] Rendering', comments.length, 'comments');
                     container.innerHTML = comments.map(comment => `
                         <div class="comment-item" style="background: #f9f9f9; padding: 12px; border-radius: 5px; margin-bottom: 10px; border-left: 3px solid #10b981;">
                             <div style="display: flex; justify-content: space-between; align-items: start;">
@@ -412,7 +426,7 @@
                     `).join('');
                 }
             } catch (error) {
-                console.error('Error loading comments:', error);
+                console.error('[LOAD COMMENTS] Error:', error);
                 document.getElementById('commentsList').innerHTML = '<p style="color: #999;">Error loading comments.</p>';
             }
         }
