@@ -309,7 +309,9 @@ app.use((err, req, res, next) => {
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
-  logger.error('MONGODB_URI environment variable is required. Please set it in your .env or Render environment.');
+  logger.error('CRITICAL: MONGODB_URI environment variable is required!');
+  logger.error('For Render deployment, set MONGODB_URI in Environment Variables:');
+  logger.error('See RENDER_SETUP.md for detailed instructions');
   process.exit(1);
 }
 
